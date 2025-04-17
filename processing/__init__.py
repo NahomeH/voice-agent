@@ -1,3 +1,3 @@
-from .llm import LLMProcessor, generate_response
+from .llm import LLMProcessor
 
-__all__ = ['LLMProcessor', 'generate_response']
+__all__ = ['LLMProcessor']

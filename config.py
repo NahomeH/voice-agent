@@ -27,7 +27,7 @@ TTS_SAMPLE_RATE = 48000  # Higher sample rate for output audio quality
 # LLM Settings
 LLM_MODEL = "gpt-4o-mini"  # OpenAI model to use
 TEMPERATURE = 0.7  # Creativity level (0.0-1.0)
-MAX_TOKENS = 2048  # Maximum response length
+MAX_TOKENS = 750  # Maximum response length
 
 # Voice Settings
 VOICE_LANGUAGE = "en-US"

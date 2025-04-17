@@ -78,22 +78,3 @@ class LLMProcessor:
         """Reset the conversation history, keeping only the system prompt."""
         self.conversation_history = [{"role": "system", "content": self.system_prompt}]
         logger.info("Conversation history cleared")
-
-# Convenience function for simple use cases
-def generate_response(user_input, conversation_history=None):
-    """
-    Generate a single response without managing conversation state.
-    
-    Args:
-        user_input (str): The user's input
-        conversation_history (list, optional): Previous conversation messages
-        
-    Returns:
-        str: The generated response
-    """
-    processor = LLMProcessor()
-    
-    if conversation_history:
-        processor.conversation_history = conversation_history
-    
-    return processor.get_response(user_input)

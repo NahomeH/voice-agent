@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import logging
+import threading
 from pynput import keyboard
 
 # Set the absolute path for Google credentials before any other imports
@@ -33,27 +34,28 @@ class TherapyAssistant:
         self.is_recording = False
         self.is_running = True
         self.voice_gender = "MALE"  # Default voice gender
+        self.recording_thread = None
+        self.transcription = ""
         
     def toggle_recording(self):
         """Toggle recording state."""
         self.is_recording = not self.is_recording
         return self.is_recording
     
-    def process_input(self):
-        """Record, transcribe, and process user input."""
-        print("Listening... (Press any key to stop)")
-        
-        # Start recording
-        transcription = record_and_transcribe()
-        
-        if not transcription:
+    def record_audio(self):
+        """Record audio in a separate thread."""
+        self.transcription = record_and_transcribe()
+    
+    def process_transcription(self):
+        """Process the transcription and generate a response."""
+        if not self.transcription:
             print("No speech detected. Please try again.")
             return
         
-        print(f"You: {transcription}")
+        print(f"You: {self.transcription}")
         
         # Generate response
-        response = self.llm_processor.get_response(transcription)
+        response = self.llm_processor.get_response(self.transcription)
         print(f"Assistant: {response}")
         
         # Convert to speech and play
@@ -63,13 +65,23 @@ class TherapyAssistant:
         """Handle key press events."""
         try:
             if key == keyboard.Key.space and not self.is_recording:
+                # Start recording immediately
                 self.is_recording = True
-                print("Recording... (Press Space to stop)")
+                print("Recording started. Press Space to stop.")
+                # Start recording in a separate thread
+                self.recording_thread = threading.Thread(target=self.record_audio)
+                self.recording_thread.start()
                 return True
             
             if key == keyboard.Key.space and self.is_recording:
+                # Stop recording and process
                 self.is_recording = False
-                self.process_input()
+                print("Processing your response...")
+                # Wait for recording thread to complete
+                if self.recording_thread and self.recording_thread.is_alive():
+                    self.recording_thread.join()
+                # Process the transcription
+                self.process_transcription()
                 return True
                 
             if key == keyboard.Key.esc:
@@ -82,7 +94,7 @@ class TherapyAssistant:
     def run(self):
         """Run the main application loop."""
         # Display welcome message
-        welcome = "Welcome to AI Therapy Assistant. Press Space to start speaking, and ESC to exit."
+        welcome = "Welcome to Sage. Press Space to start speaking, and ESC to exit."
         print(welcome)
         speak_text("Hello, I'm your therapy assistant. How are you feeling today?", self.voice_gender)
         

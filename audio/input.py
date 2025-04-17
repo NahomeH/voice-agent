@@ -18,8 +18,8 @@ class MicrophoneStream:
         """Initialize audio stream parameters."""
         self._rate = rate
         self._chunk = chunk
-        self._buff = queue.Queue()
-        self.closed = True
+        self._buff = queue.Queue() # buffer to hold audio chunks
+        self.closed = True # stream intially closed
 
     def __enter__(self):
         """Set up the audio stream when entering the context."""
@@ -32,20 +32,20 @@ class MicrophoneStream:
             frames_per_buffer=self._chunk,
             stream_callback=self._fill_buffer,
         )
-        self.closed = False
+        self.closed = False # stream is now open
         return self
 
     def __exit__(self, type, value, traceback):
         """Clean up resources when exiting the context."""
         self._audio_stream.stop_stream()
         self._audio_stream.close()
-        self.closed = True
-        self._buff.put(None)
-        self._audio_interface.terminate()
+        self.closed = True # stream is now closed
+        self._buff.put(None) # add None to the buffer to signal the generator to stop
+        self._audio_interface.terminate() # terminate the audio interface
 
     def _fill_buffer(self, in_data, frame_count, time_info, status_flags):
         """Callback to continuously collect data from the audio stream."""
-        self._buff.put(in_data)
+        self._buff.put(in_data) # put the audio data in the buffer
         return None, pyaudio.paContinue
 
     def generator(self):
